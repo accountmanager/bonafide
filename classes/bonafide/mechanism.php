@@ -43,7 +43,21 @@ abstract class Bonafide_Mechanism {
 	 */
 	public function check($password, $hash, $salt = NULL, $iterations = NULL)
 	{
-		return ($hash === $this->hash($password, $salt, $iterations));
+		// This method uses the "slow equals" method described here:
+		// https://crackstation.net/hashing-security.htm?=rd#slowequals
+		$okay = $this->hash($password, $salt, $iterations);
+
+		$hash_length = strlen($hash);
+		$okay_length = strlen($okay);
+
+		$diff = $hash_length ^ $okay_length;
+
+		for ($pos = 0; $pos < $hash_length AND $pos < $okay_length; $pos++)
+		{
+			$diff |= ord($hash[$pos]) ^ ord($okay[$pos]);;
+		}
+
+		return $diff === 0;
 	}
 
 	/**
